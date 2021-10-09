@@ -16,7 +16,7 @@ class App implements AppInterface{
   listen(port: number,callback?: () => void) {
     this.server = this.application.listen(
       port,
-      callback
+      callback,
     );
 
     this.io = new socketIo.Server(this.server);
@@ -33,5 +33,5 @@ interface AppInterface{
 const app = new App().application;
 
 app.listen(3001,() => {
-  console.log("server running on port 3001");
+  console.warn("server running on port 3001");
 })

@@ -1,0 +1,13 @@
+# Dependencies
+node_modules
+
+# Build
+dist
+
+# static file
+static
+
+#config
+.prettierrc.js
+.eslintrc.js
+**/*.d.ts

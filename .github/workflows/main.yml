@@ -35,15 +35,15 @@ jobs:
 
       # Install modules
       - name: Install modules
-        run: yarn install
+        run: npm install
 
       - name: tsc
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
-        run: yarn tsc
+        run: npm run tsc
       
       - name: eslint
-        run: yarn lint
+        run: npm run lint
       
       - name: lint test result
         uses: 8398a7/action-slack@v3
