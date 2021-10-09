@@ -19,9 +19,25 @@ class App implements AppInterface{
       callback,
     );
 
-    this.io = new socketIo.Server(this.server);
+    this.io = new socketIo.Server(this.server,{
+      path: "/socket.connect",
+    });
+    this.connectMiddleware();
+    return this.server;
   }
   
+  connectMiddleware() {
+    if(this.io){
+      this.io.on("connection", (socket) => {
+        const req = socket.request;
+        const ip = req.headers['x-forwarrded-for'] || req.connection.remoteAddress;
+        console.warn("연결: ", socket.id, "ip: ", ip);
+        socket.on("disconnect", () => {
+          console.warn("연결해제:", socket.id)
+        })
+      })
+    }
+  }
 }
 
 interface AppInterface{
@@ -30,7 +46,7 @@ interface AppInterface{
   listen: (port: number, callback?: () => void) => void;
 }
 
-const app = new App().application;
+const app = new App();
 
 app.listen(3001,() => {
   console.warn("server running on port 3001");
