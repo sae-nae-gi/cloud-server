@@ -1,7 +1,7 @@
 import * as http from "http";
 import * as express from "express";
 import * as socketIo from "socket.io";
-
+import AppSocket from "./middleware/socket";
 class App implements AppInterface{
   application: express.Application;
   server?: http.Server;
@@ -18,25 +18,39 @@ class App implements AppInterface{
       port,
       callback,
     );
+    const appSocket = new AppSocket("/socket.connect");
+    appSocket.initConfig(this.server);
+    appSocket.onConnect((socket) => {
+      console.warn("연결: ", socket.id);
+      socket.on("disconnect", () => {
+        console.warn("연결해제:", socket.id)
+      })
+      appSocket.onListen(socket, "@joinRoom", (data) => {
+        const {roomId, userId} = data;
+        appSocket.joinRoom(socket,roomId,userId);
 
-    this.io = new socketIo.Server(this.server,{
-      path: "/socket.connect",
-    });
+        if(appSocket.socket){
+          appSocket.socket.to(roomId).emit("@joinedRoom", {roomId, userId, roomUsers: appSocket.getRoomUser(roomId)});
+          appSocket.onListen(socket, `@client/${roomId}`, (message) => {
+            console.log(message)
+            appSocket.socket!.to(roomId).emit(`@server/${roomId}`, message);
+          })
+        }
+      });
+      appSocket.onListen(socket, "@leaveRoom", (data) => {
+        const {roomId, userId} = data;
+        
+        if(appSocket.socket){
+          appSocket.leaveRoom(socket, roomId, userId);
+          appSocket.socket.to(roomId).emit("@leftRoom", {roomId, userId, roomUsers: appSocket.getRoomUser(roomId)});
+        }
+      })
+    })
     this.connectMiddleware();
     return this.server;
   }
   
   connectMiddleware() {
-    if(this.io){
-      this.io.on("connection", (socket) => {
-        const req = socket.request;
-        const ip = req.headers['x-forwarrded-for'] || req.connection.remoteAddress;
-        console.warn("연결: ", socket.id, "ip: ", ip);
-        socket.on("disconnect", () => {
-          console.warn("연결해제:", socket.id)
-        })
-      })
-    }
   }
 }
 
