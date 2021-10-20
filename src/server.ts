@@ -25,24 +25,37 @@ class App implements AppInterface{
       socket.on("disconnect", () => {
         console.warn("연결해제:", socket.id)
       })
-      appSocket.onListen(socket, "@joinRoom", (data) => {
-        const {roomId, userId} = data;
-        appSocket.joinRoom(socket,roomId,userId);
+      appSocket.onListen(socket, "@client/@room/join", (data) => {
+        const {roomId, userName} = data;
+        appSocket.joinRoom(socket,roomId,userName);
 
         if(appSocket.socket){
-          appSocket.socket.to(roomId).emit("@joinedRoom", {roomId, userId, roomUsers: appSocket.getRoomUser(roomId)});
-          appSocket.onListen(socket, `@client/${roomId}`, (message) => {
-            console.log(message)
-            appSocket.socket!.to(roomId).emit(`@server/${roomId}`, message);
+          appSocket.socket.to(roomId).emit("@server/@room/join", {
+            roomId, 
+            userName, 
+            users: appSocket.getRoomUser(roomId), 
+            joinedUser: userName
+          });
+          appSocket.onListen(socket, `@client/@chat/send`, (message) => {
+            appSocket.socket!.to(roomId).emit(`@server/@chat/send`, {
+              roomId,
+              userName,
+              message,
+            })
           })
         }
       });
-      appSocket.onListen(socket, "@leaveRoom", (data) => {
-        const {roomId, userId} = data;
-        
+      appSocket.onListen(socket, "@client/@room/leave", (data) => {
+        const {roomId, userName} = data;
+
         if(appSocket.socket){
-          appSocket.leaveRoom(socket, roomId, userId);
-          appSocket.socket.to(roomId).emit("@leftRoom", {roomId, userId, roomUsers: appSocket.getRoomUser(roomId)});
+          appSocket.leaveRoom(socket, roomId, userName);
+          appSocket.socket.to(roomId).emit("@server/@room/leave", {
+            roomId, 
+            userName, 
+            users: appSocket.getRoomUser(roomId), 
+            leftUser: userName
+          });
         }
       })
     })

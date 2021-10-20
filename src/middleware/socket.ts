@@ -17,6 +17,7 @@ class RoomStore {
   removeUser(roomId: string, userId: string){
     if(this.roomHash[roomId]) {
       this.roomHash[roomId] = this.roomHash[roomId].filter(id => id !==userId);
+
       return this.getRoomUser(roomId);
     }
   }
@@ -99,7 +100,7 @@ class AppSocket {
   leaveRoom(
     socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, 
     roomId: string, 
-    userId: string
+    userId: string,
   ){
     socket.leave(roomId);
     this.roomStore.removeUser(roomId,userId);
