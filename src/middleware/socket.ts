@@ -18,7 +18,7 @@ class RoomStore {
     if(this.roomHash[roomId]) {
       this.roomHash[roomId] = this.roomHash[roomId].filter(id => id !==userId);
 
-      return this.getRoomUser(roomId);
+      return this;
     }
   }
 
@@ -29,7 +29,7 @@ class RoomStore {
     if(this.roomHash[roomId].indexOf(userId) === -1){
       this.roomHash[roomId].push(userId);
     }
-    return this.getRoomUser(roomId);
+    return this;
   }
 
   getRoomUser(roomId: string){
@@ -100,10 +100,13 @@ class AppSocket {
   leaveRoom(
     socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, 
     roomId: string, 
-    userId: string,
   ){
     socket.leave(roomId);
-    this.roomStore.removeUser(roomId,userId);
+  }
+
+  removeUser(roomId: string, userName: string) {
+    this.roomStore.removeUser(roomId, userName);
+    return this;
   }
 
   getRoomUser(roomId: string) {

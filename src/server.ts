@@ -49,13 +49,15 @@ class App implements AppInterface{
         const {roomId, userName} = data;
 
         if(appSocket.socket){
-          appSocket.leaveRoom(socket, roomId, userName);
           appSocket.socket.to(roomId).emit("@server/@room/leave", {
             roomId, 
             userName, 
-            users: appSocket.getRoomUser(roomId), 
+            users: appSocket
+              .removeUser(roomId,userName)
+              .getRoomUser(roomId), 
             leftUser: userName
           });
+          appSocket.leaveRoom(socket, roomId);
         }
       })
     })
