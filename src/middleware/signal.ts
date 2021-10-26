@@ -1,8 +1,13 @@
 import AppSocket, { MessageAction } from "./socket";
+import * as socketIo from "socket.io";
+import { DefaultEventsMap } from "socket.io/dist/typed-events";
 
 const signalType = {
-  serverSignal: "@server/signalChannel",
-  clientSignal: "@client/signalChannel",
+  serverOffer: "@server/offer",
+  clientOffer: "@client/offer",
+  serverAnswer: "@server/answer",
+  clientAnswer: "@client/answer",
+  iceCandidate: "@server/newIceCandidate",
 }
 
 export class RTCSignal implements Signal {
@@ -10,14 +15,39 @@ export class RTCSignal implements Signal {
 
   constructor(socket: AppSocket) {
     this.socket = socket;
+
   }
 
-  answer() {
-    this.socket.send({ type: signalType.clientSignal, payload: null });
+  activate() {
+
+  }
+
+  private initListen(
+    socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>,
+    roomId: string,
+  ) {
+    this.socket.onListen(socket, signalType.clientOffer, (message) => {
+      socket.to(roomId).emit(signalType.serverOffer, message);
+    });
+    this.socket.onListen(socket, signalType.clientAnswer, (message) => {
+      socket.to(roomId).emit(signalType.serverAnswer, message);
+    });
+  }
+
+  answer(message: RTCMessage["payload"]) {
+    this.socket.send({ type: signalType.serverAnswer, payload: message });
   }
 }
 
+interface RTCMessage {
+  type: MessageAction["type"];
+  payload: {
+    userName: string;
+    target: string;
+    sdp: string;
+  }
+}
 
 export interface Signal {
-  answer: () => void;
+  answer: (payload: RTCMessage["payload"]) => void;
 }

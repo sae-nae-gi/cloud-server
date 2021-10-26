@@ -9,7 +9,7 @@ export type MessageType = "@sendMessage"
 export interface MessageAction {
   // TODO 타입 고도화
   type: MessageType | string;
-  payload: string | null;
+  payload: any;
 }
 
 class RoomStore {
