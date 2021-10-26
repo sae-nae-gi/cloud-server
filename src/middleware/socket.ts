@@ -3,36 +3,37 @@ import * as socketIo from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 
 export type MessageType = "@sendMessage"
-  | "@joinRoom" 
+  | "@joinRoom"
   | "@leaveRoom";
 
-interface MessageAction {
-  type: MessageType;
-  payload: string;
+export interface MessageAction {
+  // TODO 타입 고도화
+  type: MessageType | string;
+  payload: string | null;
 }
 
 class RoomStore {
-  private roomHash: Record<string,string[]> = {};
+  private roomHash: Record<string, string[]> = {};
 
-  removeUser(roomId: string, userId: string){
-    if(this.roomHash[roomId]) {
-      this.roomHash[roomId] = this.roomHash[roomId].filter(id => id !==userId);
+  removeUser(roomId: string, userId: string) {
+    if (this.roomHash[roomId]) {
+      this.roomHash[roomId] = this.roomHash[roomId].filter(id => id !== userId);
 
       return this;
     }
   }
 
   addUser(roomId: string, userId: string) {
-    if(!this.roomHash[roomId]){
+    if (!this.roomHash[roomId]) {
       this.roomHash[roomId] = [];
     }
-    if(this.roomHash[roomId].indexOf(userId) === -1){
+    if (this.roomHash[roomId].indexOf(userId) === -1) {
       this.roomHash[roomId].push(userId);
     }
     return this;
   }
 
-  getRoomUser(roomId: string){
+  getRoomUser(roomId: string) {
     return this.roomHash[roomId];
   }
 
@@ -58,49 +59,55 @@ class AppSocket {
         path: this.url
       },
     )
-    
+
   }
 
-  get socket(){
+  get socket() {
     return this.io;
   }
 
-  onConnect(cb: (socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>) => void){
-    if(this.io){
+  onConnect(cb: (socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>) => void) {
+    if (this.io) {
       this.io.on("connection", cb);
     }
   }
 
+  send({ type, payload }: MessageAction) {
+    if (this.io) {
+      this.io.emit(type, payload);
+    }
+  }
+
   emit(
-    socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, 
+    socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>,
     action: MessageAction,
   ) {
-    if(socket){
-      socket.emit(action.type, action.payload);      
+    if (socket) {
+      socket.emit(action.type, action.payload);
     }
   }
 
   onListen(
-    socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, 
+    socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>,
     type: MessageAction["type"] | string,
     cb: (message: any) => void,
-  ){
+  ) {
     socket.on(type, cb);
   }
 
   joinRoom(
-    socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, 
-    roomId: string, 
+    socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>,
+    roomId: string,
     userId: string
   ) {
     socket.join(roomId);
-    this.roomStore.addUser(roomId,userId);
+    this.roomStore.addUser(roomId, userId);
   }
 
   leaveRoom(
-    socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, 
-    roomId: string, 
-  ){
+    socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>,
+    roomId: string,
+  ) {
     socket.leave(roomId);
   }
 
