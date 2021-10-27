@@ -18,11 +18,7 @@ export class RTCSignal implements Signal {
 
   }
 
-  activate() {
-
-  }
-
-  private initListen(
+  initListen(
     socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>,
     roomId: string,
   ) {
@@ -50,4 +46,5 @@ interface RTCMessage {
 
 export interface Signal {
   answer: (payload: RTCMessage["payload"]) => void;
+  initListen: (socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, roomId: string) => void;
 }
