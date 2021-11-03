@@ -29,10 +29,11 @@ class App implements AppInterface {
         console.warn("연결해제:", socket.id)
       })
 
+      rtcSignal.initListen(socket);
+
       appSocket.onListen(socket, "@client/@room/join", (data) => {
         const { roomId, userName } = data;
         appSocket.joinRoom(socket, roomId, userName);
-        rtcSignal.initListen(socket, roomId);
 
         if (appSocket.socket) {
           appSocket.socket.to(roomId).emit("@server/@room/join", {

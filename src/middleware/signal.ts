@@ -17,16 +17,21 @@ export class RTCSignal implements Signal {
     this.socket = socket;
 
   }
-
-  initListen(
+  offListen(
     socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>,
     roomId: string,
   ) {
+
+  }
+
+  initListen(
+    socket: socketIo.Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>,
+  ) {
     this.socket.onListen(socket, signalType.clientOffer, (message) => {
-      socket.to(roomId).emit(signalType.serverOffer, message);
+      socket.to(message.roomId).emit(signalType.serverOffer, message);
     });
     this.socket.onListen(socket, signalType.clientAnswer, (message) => {
-      socket.to(roomId).emit(signalType.serverAnswer, message);
+      socket.to(message.roomId).emit(signalType.serverAnswer, message);
     });
   }
 

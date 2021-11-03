@@ -18,9 +18,11 @@ class RoomStore {
   removeUser(roomId: string, userId: string) {
     if (this.roomHash[roomId]) {
       this.roomHash[roomId] = this.roomHash[roomId].filter(id => id !== userId);
-
-      return this;
     }
+    if (this.roomHash[roomId].length === 0) {
+      delete this.roomHash[roomId];
+    }
+    return this;
   }
 
   addUser(roomId: string, userId: string) {
@@ -34,7 +36,7 @@ class RoomStore {
   }
 
   getRoomUser(roomId: string) {
-    return this.roomHash[roomId];
+    return this.roomHash[roomId] || null;
   }
 
   getRoomUserCount(roomId: string): number | null {
